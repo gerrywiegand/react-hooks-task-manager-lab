@@ -1,12 +1,17 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import { TaskContext } from "../context/TaskContext";
 
-function TaskList({ query }) {
+function TaskList({ query = "" }) {
   const { tasks, toggleCompleted } = useContext(TaskContext);
 
-  const filteredTasks = tasks.filter((task) =>
-    task.title.toLowerCase().includes(query.toLowerCase())
+  const q = String(query).toLowerCase();
+
+  const filteredTasks = (tasks || []).filter((task) =>
+    String(task?.title || "")
+      .toLowerCase()
+      .includes(q)
   );
+
   return (
     <ul>
       {filteredTasks.map((task) => (
@@ -17,7 +22,7 @@ function TaskList({ query }) {
             {task.title}
           </span>
           <button
-            data-testid={task.id}
+            data-testid={String(task.id)}
             onClick={() => toggleCompleted(task.id)}
           >
             {task.completed ? "Undo" : "Complete"}

@@ -15,7 +15,7 @@ function SearchBar() {
         ref={inputRef}
         type="text"
         placeholder="Search tasks..."
-        defaultvalue={query}
+        defaultValue={query}
         onChange={handleSearch}
       />
       <TaskList query={query} />
