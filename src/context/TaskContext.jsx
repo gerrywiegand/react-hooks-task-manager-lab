@@ -6,7 +6,7 @@ export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:6001/tasks")
+    fetch("/tasks")
       .then((r) => {
         if (!r.ok) throw new Error("Network response was not ok");
         return r.json();
@@ -15,39 +15,56 @@ export function TaskProvider({ children }) {
       .catch((err) => console.error("Load tasks failed:", err));
   }, []);
 
+  // add
   function addTask(title) {
-    const newTask = { title, completed: false };
+    const temp = { id: Date.now(), title, completed: false };
 
-    fetch("http://localhost:6001/tasks", {
+    setTasks((prev) => [...prev, temp]);
+
+    fetch("/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newTask),
+      body: JSON.stringify({ title, completed: false }),
     })
-      .then((r) => {
-        if (!r.ok) throw new Error("Network response was not ok");
-        return r.json();
+      .then((r) =>
+        r.ok
+          ? r.json()
+          : Promise.reject(new Error("Network response was not ok"))
+      )
+      .then((saved) => {
+        if (!saved) return;
+        setTasks((prev) => prev.map((t) => (t.id === temp.id ? saved : t)));
       })
-      .then((data) => setTasks((prev) => [...prev, data]))
-      .catch((err) => console.error("Add task failed:", err));
+      .catch((err) => {
+        console.error("Add task failed:", err);
+      });
   }
 
   function toggleCompleted(id) {
-    const task = tasks.find((t) => t.id === id);
-    if (!task) return;
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+    );
 
-    fetch(`http://localhost:6001/tasks/${id}`, {
+    const task = tasks.find((t) => t.id === id);
+    const nextCompleted = task ? !task.completed : true;
+
+    fetch(`/tasks/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ completed: !task.completed }),
+      body: JSON.stringify({ completed: nextCompleted }),
     })
-      .then((r) => {
-        if (!r.ok) throw new Error("Network response was not ok");
-        return r.json();
-      })
-      .then((data) =>
-        setTasks((prev) => prev.map((t) => (t.id === id ? data : t)))
+      .then((r) =>
+        r.ok
+          ? r.json()
+          : Promise.reject(new Error("Network response was not ok"))
       )
-      .catch((err) => console.error("Toggle task failed:", err));
+      .then((saved) => {
+        if (!saved) return;
+        setTasks((prev) => prev.map((t) => (t.id === id ? saved : t)));
+      })
+      .catch((err) => {
+        console.error("Toggle task failed:", err);
+      });
   }
 
   const value = { tasks, addTask, toggleCompleted };
