@@ -6,7 +6,7 @@ export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
-    fetch("/tasks")
+    fetch("http://localhost:6001/tasks")
       .then((r) => {
         if (!r.ok) throw new Error("Network response was not ok");
         return r.json();
@@ -21,7 +21,7 @@ export function TaskProvider({ children }) {
 
     setTasks((prev) => [...prev, temp]);
 
-    fetch("/tasks", {
+    fetch("http://localhost:6001/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, completed: false }),
@@ -48,7 +48,7 @@ export function TaskProvider({ children }) {
     const task = tasks.find((t) => t.id === id);
     const nextCompleted = task ? !task.completed : true;
 
-    fetch(`/tasks/${id}`, {
+    fetch(`http://localhost:6001/tasks/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ completed: nextCompleted }),
